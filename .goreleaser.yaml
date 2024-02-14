@@ -24,21 +24,6 @@ builds:
       - -tags=cgo
     ldflags:
       - -s -w -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X github.com/cosmos/cosmos-sdk/version.Name=xpla -X github.com/cosmos/cosmos-sdk/version.AppName=xplad -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger -X github.com/tendermint/tendermint/version.TMCoreSemVer={{ .Env.TM_VERSION }}
-  - id: "xplad-darwin-arm64"
-    main: ./cmd/xplad
-    binary: bin/xplad
-    env:
-      - CGO_ENABLED=1
-      - CC=oa64-clang
-      - CXX=oa64-clang++
-    goos:
-      - darwin
-    goarch:
-      - arm64
-    flags:
-      - -tags=cgo
-    ldflags:
-      - -s -w -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X github.com/cosmos/cosmos-sdk/version.Name=xpla -X github.com/cosmos/cosmos-sdk/version.AppName=xplad -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger -X github.com/tendermint/tendermint/version.TMCoreSemVer={{ .Env.TM_VERSION }}
   - id: "xplad-linux"
     main: ./cmd/xplad
     binary: bin/xplad
@@ -78,7 +63,6 @@ archives:
         format: zip
     builds:
       - xplad-darwin
-      - xplad-darwin-arm64
       - xplad-windows
       - xplad-linux
 
