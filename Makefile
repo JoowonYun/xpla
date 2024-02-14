@@ -16,6 +16,7 @@ NAME := xpla
 APPNAME := xplad
 LEDGER_ENABLED ?= true
 TM_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::') # grab everything after the space in "github.com/tendermint/tendermint v0.34.7"
+BUILDDIR ?= $(CURDIR)/build
 
 # for dockerized protobuf tools
 DOCKER := $(shell which docker)
@@ -99,6 +100,21 @@ build/linux/amd64:
 build/linux/arm64:
 	GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o "$@/xplad" ./cmd/xplad
 
+build-linux:
+	mkdir -p $(BUILDDIR)
+	docker build --no-cache --tag xpladev/xpla ./
+	docker create --name temp xpladev/xpla:latest
+	docker cp temp:/usr/local/bin/xplad $(BUILDDIR)/
+	docker rm temp
+
+build-linux-with-shared-library:
+	mkdir -p $(BUILDDIR)
+	docker build --tag xpladev/xpla-shared ./ -f ./shared.Dockerfile
+	docker create --name temp xpladev/xpla-shared:latest
+	docker cp temp:/usr/local/bin/xplad $(BUILDDIR)/
+	docker cp temp:/lib/libwasmvm.so $(BUILDDIR)/
+	docker rm temp
+
 build-release: build/linux/amd64 build/linux/arm64
 
 build-release-amd64: go.sum $(BUILDDIR)/
@@ -116,9 +132,9 @@ build-release-amd64: go.sum $(BUILDDIR)/
 		-f Dockerfile .
 	$(DOCKER) rm -f xpla-builder || true
 	$(DOCKER) create -ti --name xpla-builder xpla:local-amd64
-	$(DOCKER) cp xpla-builder:/usr/local/bin/terrad $(BUILDDIR)/release/terrad
-	tar -czvf $(BUILDDIR)/release/terra_$(VERSION)_Linux_x86_64.tar.gz -C $(BUILDDIR)/release/ terrad
-	rm $(BUILDDIR)/release/terrad
+	$(DOCKER) cp xpla-builder:/usr/local/bin/xplad $(BUILDDIR)/release/xplad
+	tar -czvf $(BUILDDIR)/release/xpla_$(VERSION)_Linux_x86_64.tar.gz -C $(BUILDDIR)/release/ xplad
+	rm $(BUILDDIR)/release/xplad
 	$(DOCKER) rm -f xpla-builder
 
 build-release-arm64: go.sum $(BUILDDIR)/
@@ -136,9 +152,9 @@ build-release-arm64: go.sum $(BUILDDIR)/
 		-f Dockerfile .
 	$(DOCKER) rm -f xpla-builder || true
 	$(DOCKER) create -ti --name xpla-builder xpla:local-arm64
-	$(DOCKER) cp xpla-builder:/usr/local/bin/terrad $(BUILDDIR)/release/terrad 
-	tar -czvf $(BUILDDIR)/release/terra_$(VERSION)_Linux_arm64.tar.gz -C $(BUILDDIR)/release/ terrad 
-	rm $(BUILDDIR)/release/terrad
+	$(DOCKER) cp xpla-builder:/usr/local/bin/xplad $(BUILDDIR)/release/xplad 
+	tar -czvf $(BUILDDIR)/release/xpla_$(VERSION)_Linux_arm64.tar.gz -C $(BUILDDIR)/release/ xplad 
+	rm $(BUILDDIR)/release/xplad
 	$(DOCKER) rm -f xpla-builder
 
 .PHONY: test
