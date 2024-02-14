@@ -93,6 +93,54 @@ install: go.sum
 build: go.sum
 	go build -mod=readonly $(BUILD_FLAGS) -o build/xplad ./cmd/xplad
 
+build/linux/amd64:
+	GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o "$@/xplad" ./cmd/xplad
+
+build/linux/arm64:
+	GOOS=linux GOARCH=arm64 go build -mod=readonly $(BUILD_FLAGS) -o "$@/xplad" ./cmd/xplad
+
+build-release: build/linux/amd64 build/linux/arm64
+
+build-release-amd64: go.sum $(BUILDDIR)/
+	$(DOCKER) buildx create --name xpla-builder || true
+	$(DOCKER) buildx use xpla-builder
+	$(DOCKER) buildx build \
+		--build-arg GO_VERSION=$(GO_VERSION) \
+		--build-arg GIT_VERSION=$(VERSION) \
+		--build-arg GIT_COMMIT=$(COMMIT) \
+    --build-arg BUILDPLATFORM=linux/amd64 \
+    --build-arg GOOS=linux \
+    --build-arg GOARCH=amd64 \
+		-t xpla:local-amd64 \
+		--load \
+		-f Dockerfile .
+	$(DOCKER) rm -f xpla-builder || true
+	$(DOCKER) create -ti --name xpla-builder xpla:local-amd64
+	$(DOCKER) cp xpla-builder:/usr/local/bin/terrad $(BUILDDIR)/release/terrad
+	tar -czvf $(BUILDDIR)/release/terra_$(VERSION)_Linux_x86_64.tar.gz -C $(BUILDDIR)/release/ terrad
+	rm $(BUILDDIR)/release/terrad
+	$(DOCKER) rm -f xpla-builder
+
+build-release-arm64: go.sum $(BUILDDIR)/
+	$(DOCKER) buildx create --name xpla-builder  || true
+	$(DOCKER) buildx use xpla-builder 
+	$(DOCKER) buildx build \
+		--build-arg GO_VERSION=$(GO_VERSION) \
+		--build-arg GIT_VERSION=$(VERSION) \
+		--build-arg GIT_COMMIT=$(COMMIT) \
+    --build-arg BUILDPLATFORM=linux/arm64 \
+    --build-arg GOOS=linux \
+    --build-arg GOARCH=arm64 \
+		-t xpla:local-arm64 \
+		--load \
+		-f Dockerfile .
+	$(DOCKER) rm -f xpla-builder || true
+	$(DOCKER) create -ti --name xpla-builder xpla:local-arm64
+	$(DOCKER) cp xpla-builder:/usr/local/bin/terrad $(BUILDDIR)/release/terrad 
+	tar -czvf $(BUILDDIR)/release/terra_$(VERSION)_Linux_arm64.tar.gz -C $(BUILDDIR)/release/ terrad 
+	rm $(BUILDDIR)/release/terrad
+	$(DOCKER) rm -f xpla-builder
+
 .PHONY: test
 test: go.sum
 	go test -short ./...
