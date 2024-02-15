@@ -14,12 +14,12 @@ RUN adduser -D -g '' valiuser
 # Install required binaries
 RUN apk add --update --no-cache zip git make cmake build-base linux-headers musl-dev libc-dev
 
-WORKDIR ${GOPATH}/mimalloc
+WORKDIR /mimalloc
 RUN git clone --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdir build; cd build; cmake ..; make -j$(nproc); make install
 ENV MIMALLOC_RESERVE_HUGE_OS_PAGES=4
 
 # Download dependencies and CosmWasm libwasmvm if found.
-WORKDIR ${GOPATH}/app
+WORKDIR /app
 ADD go.mod go.sum ./
 RUN set -eux; \    
     export ARCH=$(uname -m); \
@@ -33,14 +33,13 @@ RUN set -eux; \
 COPY . .
 
 # Build executable
-WORKDIR ${GOPATH}
 RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS='-linkmode=external -extldflags "-L/mimalloc/build -lmimalloc -Wl,-z,muldefs -static"' make build
 
 # --------------------------------------------------------
 FROM alpine:3.16 AS runtime
 
 
-COPY ${GOPATH}/xplad /usr/local/bin/xplad
+COPY /build/xplad /usr/local/bin/xplad
 
 # Expose Cosmos ports
 EXPOSE 9090
