@@ -18,12 +18,10 @@ WORKDIR /
 RUN git clone --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdir build; cd build; cmake ..; make -j$(nproc); make install
 ENV MIMALLOC_RESERVE_HUGE_OS_PAGES=4
 
-# Copy source files
-WORKDIR /
-COPY . .
-
 # Download dependencies and CosmWasm libwasmvm if found.
-ADD go.mod go.sum ./
+WORKDIR /src
+# Copy source files
+COPY . .
 RUN set -eux; \    
     export ARCH=$(uname -m); \
     WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}'); \
@@ -38,7 +36,7 @@ RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS='-linkmode=external -extldflag
 # --------------------------------------------------------
 FROM alpine:3.15 AS runtime
 
-COPY --from=build /build/xplad /usr/local/bin/xplad
+COPY --from=build /src/build/xplad /usr/local/bin/xplad
 
 # Expose Cosmos ports
 EXPOSE 9090
