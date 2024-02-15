@@ -19,6 +19,7 @@ RUN git clone --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdi
 ENV MIMALLOC_RESERVE_HUGE_OS_PAGES=4
 
 # Copy source files
+WORKDIR /
 COPY . .
 
 # Download dependencies and CosmWasm libwasmvm if found.
@@ -30,9 +31,6 @@ RUN set -eux; \
       wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.${ARCH}.a; \      
     fi; \
     go mod download;
-
-# Copy source files
-COPY . .
 
 # Build executable
 RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS='-linkmode=external -extldflags "-L/mimalloc/build -lmimalloc -Wl,-z,muldefs -static"' make build
