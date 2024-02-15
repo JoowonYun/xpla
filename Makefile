@@ -126,9 +126,9 @@ build-release-amd64: go.sum $(BUILDDIR)/
 		--build-arg GO_VERSION=$(GO_VERSION) \
 		--build-arg GIT_VERSION=$(VERSION) \
 		--build-arg GIT_COMMIT=$(COMMIT) \
-    --build-arg BUILDPLATFORM=linux/amd64 \
     --build-arg GOOS=linux \
     --build-arg GOARCH=amd64 \
+    --platform linux/amd64 \
 		-t xpla:local-amd64 \
 		--load \
 		-f Dockerfile .
@@ -146,9 +146,9 @@ build-release-arm64: go.sum $(BUILDDIR)/
 		--build-arg GO_VERSION=$(GO_VERSION) \
 		--build-arg GIT_VERSION=$(VERSION) \
 		--build-arg GIT_COMMIT=$(COMMIT) \
-    --build-arg BUILDPLATFORM=linux/arm64 \
     --build-arg GOOS=linux \
     --build-arg GOARCH=arm64 \
+    --platform linux/arm64 \
 		-t xpla:local-arm64 \
 		--load \
 		-f Dockerfile .

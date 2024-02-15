@@ -36,7 +36,7 @@ COPY . .
 RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS='-linkmode=external -extldflags "-L/mimalloc/build -lmimalloc -Wl,-z,muldefs -static"' make build
 
 # --------------------------------------------------------
-FROM alpine:3.16 AS runtime
+FROM alpine:3.15 AS runtime
 
 COPY --from=build /build/xplad /usr/local/bin/xplad
 
