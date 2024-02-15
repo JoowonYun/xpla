@@ -38,6 +38,7 @@ RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LDFLAGS='-linkmode=external -extldflag
 # --------------------------------------------------------
 FROM alpine:3.16 AS runtime
 
+COPY . .
 
 COPY /build/xplad /usr/local/bin/xplad
 
