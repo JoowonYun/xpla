@@ -14,12 +14,10 @@ RUN adduser -D -g '' valiuser
 # Install required binaries
 RUN apk add --update --no-cache zip git make cmake build-base linux-headers musl-dev libc-dev
 
-WORKDIR /mimalloc
 RUN git clone --depth 1 https://github.com/microsoft/mimalloc; cd mimalloc; mkdir build; cd build; cmake ..; make -j$(nproc); make install
 ENV MIMALLOC_RESERVE_HUGE_OS_PAGES=4
 
 # Download dependencies and CosmWasm libwasmvm if found.
-WORKDIR /app
 ADD go.mod go.sum ./
 RUN set -eux; \    
     export ARCH=$(uname -m); \
